@@ -386,7 +386,7 @@ test('background message contracts preserve settings, stats, and sender boundari
   const chrome = {
     runtime: {
       id: 'feedpecker-test',
-      getManifest: () => ({ version: '0.6.0' }),
+      getManifest: () => ({ version: '0.6.1' }),
       onMessage: { addListener: listener => { messageListener = listener; } },
       onInstalled: { addListener() {} },
       onStartup: { addListener() {} },

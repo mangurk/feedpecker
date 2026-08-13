@@ -56,7 +56,7 @@ For the extension's trust model, account-action safeguards, and responsible vuln
 
 ### Chrome & Chromium-based Browsers (Brave, Edge, Opera, etc.)
 
-1. Download `feedpecker-v0.6.0.zip` from the latest GitHub Release and extract it. The ZIP itself is already the loadable extension folder—there is no nested `dist` folder. Alternatively, clone this repository and use its committed `dist` folder.
+1. Download `feedpecker-v0.6.1.zip` from the latest GitHub Release and extract it. The ZIP itself is already the loadable extension folder—there is no nested `dist` folder. Alternatively, clone this repository and use its committed `dist` folder.
 2. Open your browser's extensions page:
    - Chrome: `chrome://extensions`
    - Brave: `brave://extensions`
@@ -72,7 +72,7 @@ After pulling an update, return to the extensions page and click **Reload** on t
 
 ### Firefox 142 or newer
 
-1. Download and extract `feedpecker-v0.6.0.zip` from the latest GitHub Release, or clone this repository.
+1. Download and extract `feedpecker-v0.6.1.zip` from the latest GitHub Release, or clone this repository.
 2. Open `about:debugging` in Firefox.
 3. Select **This Firefox**.
 4. Click **Load Temporary Add-on**.
