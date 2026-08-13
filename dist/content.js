@@ -1873,6 +1873,38 @@ async function getManualFilterProfileData(screenName, cacheOnly = false) {
   };
 }
 
+function getManualFilterProfile(screenName) {
+  const handle = cleanScreenName(screenName);
+  if (!handle) return null;
+  const saved = filteredAccounts.get(handle.toLowerCase()) || {};
+  const cached = dataMap.get(handle.toLowerCase()) || {};
+  return {
+    ...saved,
+    screenName: handle,
+    location: String(saved.location || cached.location || ''),
+    country: String(saved.country || cached.country || saved.location || cached.location || ''),
+    verified: saved.verified === true || cached.verified === true,
+    timezone: cached.timezone || null,
+    isRegion: cached.isRegion === true
+  };
+}
+
+function appendHoverManualFilterButton(root, handle) {
+  if (!root || root.querySelector('.tf-filter-profile-btn--hover')) return;
+  const profile = getManualFilterProfile(handle);
+  if (!profile) return;
+  const identity = root.querySelector('[data-testid="UserName"], [data-testid="User-Name"], [data-testid="User-Names"]');
+  let surface = identity || root.firstElementChild || root;
+  while (surface.parentElement && surface.parentElement !== root) surface = surface.parentElement;
+  const slot = document.createElement('div');
+  slot.className = 'tf-filter-profile-slot';
+  const hasProfileSummaryControl = Array.from(surface.querySelectorAll('button, [role="button"]'))
+    .some(control => String(control.textContent || '').trim().toLowerCase().includes('profile summary'));
+  if (hasProfileSummaryControl) slot.classList.add('tf-filter-profile-slot--after-summary');
+  slot.appendChild(createManualFilterButton(profile, 'hover'));
+  surface.appendChild(slot);
+}
+
 function scheduleHoverCardFlagRetry(root, profile, attempt) {
   const existing = hoverCardRetryTimers.get(root);
   if (existing) clearTimeout(existing);
@@ -2012,9 +2044,9 @@ async function ensureProfilePageControl() {
       return rect.bottom <= identityTop + 24 && rect.top >= identityTop - 260;
     }) || null;
   if (!followButton) return;
-  // The visibility control is handle-based and must remain available even
-  // when the location quota is exhausted, so it only reads cached metadata.
-  const profile = await getManualFilterProfileData(handle, true);
+  // This is a local handle override. It must not depend on location lookup
+  // availability or pacing state.
+  const profile = getManualFilterProfile(handle);
   if (!profile || getProfilePageHandle()?.toLowerCase() !== handle.toLowerCase() || !document.contains(followButton)) return;
   const button = createManualFilterButton(profile, 'profile');
   const group = document.createElement('div');
@@ -2046,8 +2078,9 @@ async function ensureHoverCardControl(root) {
     root.dataset.tfHoverAttempts = '0';
     delete root.dataset.tfHoverLookupComplete;
     delete root.dataset.tfHoverRetryAt;
+    appendHoverManualFilterButton(root, handle);
   }
-  if (existingButton && existingFlag) return;
+  if (root.querySelector('.tf-filter-profile-btn--hover') && existingFlag) return;
   if (root.dataset.tfHoverLookupWorking === 'true') return;
   const retryAt = Number(root.dataset.tfHoverRetryAt) || 0;
   if (existingButton && !existingFlag && (root.dataset.tfHoverLookupComplete === 'true' || retryAt > Date.now())) return;
@@ -2067,17 +2100,7 @@ async function ensureHoverCardControl(root) {
     if (!profile || !document.contains(root) || findProfileHandleIn(root)?.toLowerCase() !== handleKey) return;
     const identity = root.querySelector('[data-testid="UserName"], [data-testid="User-Name"], [data-testid="User-Names"]');
     addHoverCardLocationBadge(root, identity, profile);
-    if (!existingButton && !root.querySelector('.tf-filter-profile-btn--hover')) {
-      let surface = identity || root.firstElementChild || root;
-      while (surface.parentElement && surface.parentElement !== root) surface = surface.parentElement;
-      const slot = document.createElement('div');
-      slot.className = 'tf-filter-profile-slot';
-      const hasProfileSummaryControl = Array.from(surface.querySelectorAll('button, [role="button"]'))
-        .some(control => String(control.textContent || '').trim().toLowerCase().includes('profile summary'));
-      if (hasProfileSummaryControl) slot.classList.add('tf-filter-profile-slot--after-summary');
-      slot.appendChild(createManualFilterButton(profile, 'hover'));
-      surface.appendChild(slot);
-    }
+    appendHoverManualFilterButton(root, handle);
 
     if (root.querySelector('.tf-hover-profile-flag')) {
       root.dataset.tfHoverLookupComplete = 'true';

@@ -82,6 +82,7 @@ test('built extension has every manifest entry', async () => {
   const manifest = JSON.parse(await readFile(path.join(output, 'manifest.json'), 'utf8'));
   const required = new Set([
     manifest.action.default_popup,
+    ...Object.values(manifest.action.default_icon),
     manifest.background.service_worker,
     ...manifest.background.scripts,
     ...Object.values(manifest.icons),
@@ -94,7 +95,7 @@ test('built extension has every manifest entry', async () => {
 
 test('browser-ready output excludes development-only icon sources', async () => {
   const shippedIcons = (await readdir(path.join(output, 'icons'))).sort();
-  assert.deepEqual(shippedIcons, ['128.png', '16.png', '48.png']);
+  assert.deepEqual(shippedIcons, ['128.png', '16-fav.png', '16.png', '48-fav.png', '48.png']);
 });
 
 test('built JavaScript parses', async () => {
@@ -110,11 +111,21 @@ test('built extension uses Feedpecker branding', async () => {
   const packageMetadata = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const popup = await readFile(path.join(output, manifest.action.default_popup), 'utf8');
   const dashboard = await readFile(path.join(output, 'dashboard.html'), 'utf8');
+  const background = await readFile(path.join(output, 'background.js'), 'utf8');
 
   assert.equal(manifest.name, 'Feedpecker');
   assert.equal(manifest.version, packageMetadata.version);
+  assert.equal(manifest.action.default_icon['16'], 'icons/16-fav.png');
+  assert.equal(manifest.action.default_icon['48'], 'icons/48-fav.png');
+  assert.equal(manifest.icons['16'], 'icons/16-fav.png');
+  assert.equal(manifest.icons['48'], 'icons/48-fav.png');
   assert.match(popup, /Feedpecker/);
+  assert.match(popup, /rel="icon"[^>]*href="icons\/16-fav\.png"/);
   assert.match(dashboard, /Feedpecker/);
+  assert.match(dashboard, /rel="icon"[^>]*href="icons\/16-fav\.png"/);
+  assert.match(background, /function applyActionIcon\(\) \{[\s\S]*chrome\.action\.setIcon\(\{ path: \{ 16: 'icons\/16-fav\.png', 48: 'icons\/48-fav\.png' \} \}\);/);
+  assert.match(background, /chrome\.runtime\.onStartup\?\.addListener[\s\S]*applyActionIcon\(\);[\s\S]*fetchUpdateStatus\(\);/);
+  assert.doesNotMatch(background, /setIcon\([^\n]*icons\/16\.png/);
 });
 
 test('country and timezone data resolve aliases while regional aggregates stay flagless', async () => {
@@ -210,6 +221,9 @@ test('soft dark styling stays consistent across extension surfaces', async () =>
   assert.match(popupScript, /stats\.scannedByDay\?\.\[today\]/);
   assert.match(popupScript, /stats\.hiddenByDay\?\.\[today\]/);
   assert.match(popupScript, /stats\.blockedByDay\?\.\[today\]/);
+  assert.match(popup, /id="quotaMeter"[^>]*hidden/);
+  assert.match(popupScript, /const pacing = paused \|\| fallbackPaused \|\| remaining <= 20;/);
+  assert.match(popupScript, /if \(!pacing\) \{[\s\S]*els\.quotaMeter\.hidden = true;/);
   assert.match(background, /state\.stats\.scannedByDay\[today\]/);
   assert.match(background, /state\.stats\.blockedByDay\[today\]/);
   assert.match(dashboard, /id="countryRuleSearch"/);
@@ -246,6 +260,8 @@ test('soft dark styling stays consistent across extension surfaces', async () =>
   assert.match(dashboardStyles, /\.modal-footer \.btn-secondary \{ border-color: rgba\(250,239,226,\.3\); \}/);
   assert.match(dashboardStyles, /\.modal-footer \.btn-primary,[\s\S]*\.modal-footer \.btn-danger \{ border-color: #5c0e17; \}/);
   assert.match(dashboardStyles, /\.modal-content,[\s\S]*\.reset-confirm-detail,[\s\S]*\.modal-footer button \{ border-radius: 3px; \}/);
+  assert.match(dashboardStyles, /\.modal-close::before,[\s\S]*\.modal-close::after \{[\s\S]*top: 50%;[\s\S]*left: 50%;/);
+  assert.match(dashboardStyles, /translate\(-50%, -50%\) rotate\(45deg\)/);
   assert.match(dashboardStyles, /\.view-tab,[\s\S]*\.range-btn \{ border-radius: 0; \}/);
   assert.match(dashboardStyles, /\.update-status\.error \{[\s\S]*background: #14110d;[\s\S]*color: #c89b52;/);
   assert.match(dashboardStyles, /\/\* Unified soft-dark finish \*\//);
@@ -256,6 +272,15 @@ test('soft dark styling stays consistent across extension surfaces', async () =>
   assert.match(dashboardScript, /\(item\.profiles \/ maxValue\) \* 100/);
   assert.match(dashboard, /class="empty-icon" aria-hidden="true">◎</);
   assert.match(dashboardStyles, /rgba\(239,35,60,\.68\)/);
+  assert.match(dashboardStyles, /\.legend-gradient \{ border-color: #81705c; \}/);
+  assert.match(dashboardStyles, /\.country-item:hover,[\s\S]*border-color: rgb\(200 155 82 \/ 42%\)/);
+  assert.match(dashboardStyles, /\.country-block-toggle \{[\s\S]*color: #cfc8bc;/);
+  assert.match(dashboardStyles, /\.country-item:hover \.country-block-toggle:not\(\.enabled\),[\s\S]*color: #c89b52;/);
+  assert.match(dashboardStyles, /\.country-block-toggle\.enabled \{ color: var\(--red\); \}/);
+  assert.match(dashboardStyles, /\.map-container svg \.list-hovered,[\s\S]*fill: #c89b52 !important/);
+  assert.match(dashboardScript, /function setCountryListMapHover\(country, active\)/);
+  assert.match(dashboardScript, /card\.addEventListener\('mouseenter', \(\) => setLinkedHover\(true\)\)/);
+  assert.match(dashboard, />Fewer traffic<[^>]*>[\s\S]*>More traffic</);
   assert.match(dashboardStyles, /body \{ background: #121212; \}/);
   assert.match(filteredStyles, /--bg: #000/);
   assert.match(filteredStyles, /body \{ background: #121212; \}/);
@@ -298,6 +323,9 @@ test('About Account parsing tolerates X identity field migrations', async () => 
   assert.match(content, /\.tf-filter-profile-btn\.is-filtered \{ border-color: #5c0e17; background: #000; color: #ef233c; \}/);
   assert.match(content, /\.tf-filter-profile-btn\.is-excluded \{ border-color: rgba\(200, 155, 82, \.72\); background: rgba\(200, 155, 82, \.14\); color: #e0b66e; \}/);
   assert.match(content, /\.tf-filter-profile-btn \{[\s\S]*border-radius: 999px;/);
+  assert.match(content, /function appendHoverManualFilterButton\(root, handle\)/);
+  assert.match(content, /appendHoverManualFilterButton\(root, handle\);[\s\S]*registerDirectLookupDemand\(handle, root\)/);
+  assert.match(content, /const profile = getManualFilterProfile\(handle\);[\s\S]*createManualFilterButton\(profile, 'profile'\)/);
   assert.match(content, /\.tf-flag-image/);
   assert.match(content, /\.tf-flag-emoji/);
   assert.match(content, /debugLog\('flag-rendered'/);

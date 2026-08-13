@@ -117,7 +117,7 @@ function renderQuotaMeter(status) {
   const paused = server?.rateLimited === true;
   const hasServerQuota = server?.limit > 0 && server?.remaining >= 0;
   if (!resetAt || resetAt <= Date.now() || (!paused && !hasServerQuota && !fallbackPaused)) {
-    els.quotaMeter.hidden = false;
+    els.quotaMeter.hidden = true;
     els.quotaMeter.classList.add('idle');
     els.quotaMeter.classList.remove('critical', 'paused');
     els.quotaMeterLabel.textContent = 'Ready for X lookups';
@@ -131,6 +131,11 @@ function renderQuotaMeter(status) {
     : (status?.local?.limit > 0 ? status.local.limit : (server?.limit > 0 ? server.limit : 1));
   const remaining = paused ? 0 : Math.max(0, Math.min(limit, hasServerQuota ? server.remaining : status.local.remaining));
   const safetyReserve = !paused && remaining <= 3;
+  const pacing = paused || fallbackPaused || remaining <= 20;
+  if (!pacing) {
+    els.quotaMeter.hidden = true;
+    return;
+  }
   const percentage = Math.max(0, Math.min(100, (remaining / limit) * 100));
   els.quotaMeter.hidden = false;
   els.quotaMeter.classList.remove('idle');

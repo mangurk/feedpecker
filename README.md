@@ -56,7 +56,7 @@ For the extension's trust model, account-action safeguards, and responsible vuln
 
 ### Chrome & Chromium-based Browsers (Brave, Edge, Opera, etc.)
 
-1. Download `feedpecker-v0.6.0.zip` from the latest GitHub Release and extract it. Alternatively, clone this repository and use its committed `dist` folder.
+1. Download `feedpecker-v0.6.0.zip` from the latest GitHub Release and extract it. The ZIP itself is already the loadable extension folder—there is no nested `dist` folder. Alternatively, clone this repository and use its committed `dist` folder.
 2. Open your browser's extensions page:
    - Chrome: `chrome://extensions`
    - Brave: `brave://extensions`
@@ -64,7 +64,7 @@ For the extension's trust model, account-action safeguards, and responsible vuln
    - Opera: `opera://extensions`
 3. Enable **Developer mode**.
 4. Click **Load unpacked**.
-5. Select the extracted release folder, or the committed `dist` folder when installing from a clone.
+5. Select the folder you extracted from the release ZIP. If installing from a repository clone instead, select its `dist` folder.
 6. Pin **Feedpecker** from the browser's extension menu.
 7. Open or refresh [x.com](https://x.com), then browse normally.
 

@@ -135,6 +135,7 @@ h1, p { margin: 0; }
 }
 
 .quota-meter { padding: 11px 13px 12px; }
+.quota-meter[hidden] { display: none; }
 .quota-row { display: flex; align-items: end; justify-content: space-between; gap: 10px; }
 .quota-row > div { display: grid; gap: 4px; }
 .quota-kicker,

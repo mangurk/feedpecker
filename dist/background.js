@@ -574,11 +574,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
   });
 });
 
+function applyActionIcon() {
+  chrome.action.setIcon({ path: { 16: 'icons/16-fav.png', 48: 'icons/48-fav.png' } });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.action.setIcon({ path: { 16: 'icons/16.png', 48: 'icons/48.png', 128: 'icons/128.png' } });
+  applyActionIcon();
   fetchUpdateStatus(true);
 });
 chrome.runtime.onStartup?.addListener(() => fetchUpdateStatus(true));
+applyActionIcon();
 fetchUpdateStatus();
 
 chrome.runtime.onSuspend.addListener(() => {

@@ -567,6 +567,13 @@ function syncMapBlockedState() {
   });
 }
 
+function setCountryListMapHover(country, active) {
+  const flagCode = getCountryFlag(country);
+  const iso = getIsoCodeFromFlag(flagCode);
+  const mapCountry = iso ? els.mapContainer?.querySelector('svg')?.getElementById(iso.toLowerCase()) : null;
+  mapCountry?.classList.toggle('list-hovered', active);
+}
+
 async function loadAndRenderMap(countryCounts) {
   try {
     const mapUrl = typeof chrome !== 'undefined' && chrome.runtime?.getURL
@@ -691,6 +698,7 @@ function hideTooltip() {
 }
 
 function renderCountryList(sortedData) {
+  els.mapContainer?.querySelectorAll('.list-hovered').forEach(element => element.classList.remove('list-hovered'));
   const manuallyAdded = blockedCountries
     .filter(country => !sortedData.some(item => sameOrigin(item.country, country)))
     .map(country => ({ country, count: 0, flag: getCountryFlag(country) || '' }));
@@ -781,6 +789,17 @@ function renderCountryList(sortedData) {
     actionTrack.appendChild(document.createElement('b'));
     action.append(actionLabel, actionTrack);
     action.addEventListener('click', () => toggleBlockedCountry(item.country));
+
+    const setLinkedHover = active => {
+      card.classList.toggle('is-linked-hover', active);
+      setCountryListMapHover(item.country, active);
+    };
+    card.addEventListener('mouseenter', () => setLinkedHover(true));
+    card.addEventListener('mouseleave', () => setLinkedHover(false));
+    card.addEventListener('focusin', () => setLinkedHover(true));
+    card.addEventListener('focusout', event => {
+      if (!card.contains(event.relatedTarget)) setLinkedHover(false);
+    });
 
     card.append(rank, flag, info, action);
     fragment.appendChild(card);

@@ -66,8 +66,8 @@ for (const page of ['popup', 'dashboard', 'filtered']) {
   }
 }
 
-for (const size of ['16', '48', '128']) {
-  await copy(path.join(root, 'assets', 'icons', `${size}.png`), path.join(output, 'icons', `${size}.png`));
+for (const name of ['16.png', '48.png', '128.png', '16-fav.png', '48-fav.png']) {
+  await copy(path.join(root, 'assets', 'icons', name), path.join(output, 'icons', name));
 }
 await copy(path.join(root, 'assets', 'sprites'), path.join(output, 'sprites'));
 await copy(path.join(root, 'assets', 'flags'), path.join(output, 'flags'));
