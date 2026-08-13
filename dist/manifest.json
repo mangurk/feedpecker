@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "Feedpecker",
+  "version": "0.6.0",
+  "description": "Local-first X location context, country filtering, and feed analytics.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Feedpecker",
+    "default_icon": {
+      "16": "icons/16.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "background": {
+    "scripts": ["webext.js", "background.js"],
+    "service_worker": "background.js"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "feedpecker@mangurk.github",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["websiteActivity", "websiteContent"]
+      }
+    }
+  },
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://api.github.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["sprites/feedpecker-flight.png", "flags/4x3/*.svg"],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["webext.js", "countryFlags.js", "content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["pageScript.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}

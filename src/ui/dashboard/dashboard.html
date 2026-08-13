@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · Feedpecker</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <img class="header-icon" src="icons/48.png?v=5" alt="">
+        <div class="header-text">
+          <h1>Feedpecker</h1>
+          <p class="header-subtitle">Feed geography and filter analytics</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="header-actions">
+          <a class="header-outline-btn back-x-btn" href="https://x.com/home">← Back to X</a>
+          <button id="filteredProfilesBtn" class="share-btn" type="button">Filtered profiles</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <aside id="updateToast" class="update-toast" aria-live="polite" hidden>
+      <div class="update-toast-mark" aria-hidden="true">↑</div>
+      <div class="update-toast-copy"><strong id="updateToastTitle">A new Feedpecker release is available</strong><span>See what changed and how to update your unpacked extension.</span></div>
+      <button id="viewUpdateToast" class="update-toast-action" type="button">View update</button>
+      <button id="dismissUpdateToast" class="update-toast-close" type="button" aria-label="Dismiss this release notification">×</button>
+    </aside>
+
+    <section class="visualization-section">
+      <div class="visualization-toolbar">
+        <div class="view-switcher" role="tablist" aria-label="Dashboard view">
+          <button id="mapViewBtn" class="view-tab active" type="button" role="tab" aria-selected="true" data-view="map">Map</button>
+          <button id="analyticsViewBtn" class="view-tab" type="button" role="tab" aria-selected="false" data-view="analytics">Analytics</button>
+        </div>
+        <div id="rangeSwitcher" class="range-switcher" role="group" aria-label="Analytics period" hidden>
+          <button class="range-btn active" type="button" data-days="7">Week</button>
+          <button class="range-btn" type="button" data-days="30">Month</button>
+          <button class="range-btn" type="button" data-days="365">Year</button>
+        </div>
+      </div>
+
+      <div class="visualization-stage">
+        <div id="mapView" class="visual-panel map-view">
+          <div class="map-container" id="mapContainer">
+            <div class="map-loading" id="mapLoading"><div class="loading-spinner"></div><span>Loading map…</span></div>
+          </div>
+          <div class="map-tooltip" id="mapTooltip" hidden>
+            <div class="tooltip-content"><span class="tooltip-flag" id="tooltipFlag"></span><span class="tooltip-country" id="tooltipCountry"></span><span class="tooltip-count" id="tooltipCount"></span></div>
+          </div>
+          <div class="map-legend">
+            <div class="legend-colors"><span class="legend-label">Fewer users</span><div class="legend-gradient"></div><span class="legend-label">More users</span></div>
+          </div>
+        </div>
+
+        <div id="analyticsView" class="visual-panel analytics-view" hidden>
+          <div class="activity-heading">
+            <div>
+              <span class="activity-kicker">Filtering over time</span>
+              <h2 id="activityTitle">Newly filtered profiles</h2>
+              <p id="activityDescription">Profiles identified and filtered for the first time this week.</p>
+            </div>
+            <div class="activity-summary">
+              <div><strong id="periodProfiles">0</strong><span id="periodProfilesLabel">new profiles this week</span></div>
+              <div><strong id="dailyAverage">0</strong><span>new per day</span></div>
+              <div><strong id="totalUsers">0</strong><span>profiles scanned</span></div>
+              <div><strong id="totalCountriesCount">0</strong><span>countries found</span></div>
+            </div>
+          </div>
+          <div id="activityChart" class="activity-chart" aria-label="Filtering activity chart"></div>
+          <div class="activity-legend"><span><i class="profiles-key"></i>First-time filtered profiles</span></div>
+          <p id="activityEmpty" class="activity-empty" hidden>New-profile history starts with this update. Cached profiles stay hidden without increasing the chart.</p>
+        </div>
+      </div>
+    </section>
+
+      <section id="countries" class="country-section">
+      <div class="sidebar-header">
+        <div class="sidebar-title-group"><h2>Country rules</h2><span class="sidebar-subtitle">Add any country or region, then hide or allow detected origins below</span></div>
+        <div class="country-controls">
+          <div class="country-rule-adder">
+            <input id="countryRuleSearch" class="country-rule-search" type="text" placeholder="Add country or region" autocomplete="off" role="combobox" aria-label="Add a country or region rule" aria-expanded="false" aria-controls="countryRuleResults">
+            <div id="countryRuleResults" class="country-rule-results" role="listbox" hidden></div>
+          </div>
+          <button id="hiddenCountriesToggle" class="country-filter-toggle" type="button" aria-pressed="false">Hidden only</button>
+          <button id="resetBtn" class="reset-btn" title="Clear map and analytics statistics">Reset dashboard data</button>
+        </div>
+      </div>
+      <div class="country-list" id="countryList"></div>
+      <button id="countryListToggle" class="country-list-toggle" type="button" hidden>View more</button>
+      <div class="empty-state" id="emptyState" hidden><div class="empty-icon" aria-hidden="true">◎</div><h3>No data yet</h3><p>Browse your X feed to start tracking countries.</p></div>
+    </section>
+  </main>
+
+  <footer class="dashboard-footer">
+    <div class="footer-content">
+      <a class="footer-repo-link" href="https://github.com/mangurk/feedpecker" target="_blank" rel="noreferrer" aria-label="Feedpecker on GitHub">
+        <svg class="footer-github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-6 0C5.8.1 4.7.5 4.7.5A5 5 0 0 0 4.6 4a5.4 5.4 0 0 0-1.4 3.5c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 9 18v4"/><path d="M9 18c-4.5 2-5-2-7-2"/></svg>
+        <span>Feedpecker</span>
+      </a>
+      <span class="footer-separator" aria-hidden="true">·</span>
+      <button id="footerVersion" class="footer-version" type="button" aria-haspopup="dialog">Version</button>
+      <span class="footer-separator" aria-hidden="true">·</span>
+      <button id="logsBtn" class="footer-diagnostics-btn" type="button">Diagnostics</button>
+    </div>
+  </footer>
+
+  <div id="resetModal" class="modal-overlay" hidden aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <section class="modal-content reset-confirm-content" role="dialog" aria-modal="true" aria-labelledby="resetTitle" aria-describedby="resetMessage resetDetail">
+      <div class="reset-confirm-icon" aria-hidden="true">!</div>
+      <div class="reset-confirm-copy">
+        <div class="modal-kicker">Dashboard statistics</div>
+        <h2 id="resetTitle">Reset dashboard data?</h2>
+        <p id="resetMessage">This clears the map, profiles-scanned count, discovered countries, and filtering analytics history.</p>
+        <div id="resetDetail" class="reset-confirm-detail"><strong>Kept:</strong> filtered profiles, blocked-country rules, lookup cache, extension settings, and accounts blocked on X.</div>
+      </div>
+      <div class="modal-footer reset-confirm-actions"><button id="cancelReset" class="btn-secondary" type="button">Cancel</button><button id="confirmReset" class="btn-danger" type="button">Reset statistics</button></div>
+    </section>
+  </div>
+
+  <div id="updatesModal" class="modal-overlay" hidden aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <section class="modal-content updates-modal-content" role="dialog" aria-modal="true" aria-labelledby="updatesTitle">
+      <div class="modal-header updates-header"><div><div class="modal-kicker">About Feedpecker</div><h2 id="updatesTitle">Updates</h2></div><button id="closeUpdates" class="modal-close" type="button" aria-label="Close updates">×</button></div>
+      <div class="version-overview">
+        <div><span>Installed</span><strong id="installedVersion">—</strong></div>
+        <div><span>Latest release</span><strong id="latestVersion">Checking…</strong></div>
+      </div>
+      <div id="updateStatus" class="update-status" aria-live="polite">Checking GitHub for the latest release…</div>
+      <section id="releaseNotesSection" class="release-notes-section" hidden>
+        <h3>What’s new</h3>
+        <div id="releaseNotes" class="release-notes"></div>
+      </section>
+      <section class="manual-update-section">
+        <h3>Update from Terminal</h3>
+        <p>Run this inside your Feedpecker repository:</p>
+        <div class="update-command"><code>git pull --ff-only origin main</code><button id="copyUpdateCommand" type="button">Copy</button></div>
+        <ol>
+          <li>Open <code>brave://extensions</code>.</li>
+          <li>Find Feedpecker and click <strong>Reload</strong>.</li>
+          <li>Refresh any open X tabs.</li>
+        </ol>
+        <p class="zip-update-note">Installed from a ZIP? Download the latest release ZIP, replace the old files, then reload the extension.</p>
+      </section>
+      <div class="modal-footer updates-actions">
+        <button id="checkUpdates" class="btn-secondary" type="button">Check again</button>
+        <a id="openRelease" class="btn-primary update-release-link" href="https://github.com/mangurk/feedpecker/releases/latest" target="_blank" rel="noreferrer">Open latest release</a>
+      </div>
+    </section>
+  </div>
+
+  <div id="logsModal" class="modal-overlay" hidden>
+    <div class="modal-backdrop"></div>
+    <div class="modal-content logs-modal-content">
+      <div class="modal-header logs-header"><div><div class="modal-kicker">Local event history · last 24 hours</div><h2>Diagnostics</h2></div><button id="closeLogs" class="modal-close" type="button" aria-label="Close diagnostics">×</button></div>
+      <div class="logs-toolbar"><span id="logsSummary">No logs loaded</span><div><button id="sortLogs" class="btn-secondary compact-btn logs-toolbar-button" type="button" aria-label="Show oldest logs first" title="Change log order">Newest ↓</button><button id="refreshLogs" class="btn-secondary compact-btn logs-toolbar-button" type="button">Refresh</button><button id="clearLogs" class="btn-secondary compact-btn logs-toolbar-button" type="button">Clear</button></div></div>
+      <pre id="logsOutput" class="logs-output">Open diagnostics to load recent extension events.</pre>
+      <div class="modal-footer logs-footer"><button id="copyLogs" class="btn-secondary" type="button">Copy diagnostics</button><button id="closeLogsFooter" class="btn-primary" type="button">Done</button></div>
+    </div>
+  </div>
+
+  <script src="webext.js"></script>
+  <script src="countryFlags.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

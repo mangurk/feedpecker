@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filtered profiles · Feedpecker</title>
+  <link rel="stylesheet" href="filtered.css">
+</head>
+<body>
+  <header class="page-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <img src="icons/48.png?v=5" alt="">
+        <div>
+          <h1>Filtered profiles</h1>
+          <p>Profiles removed from your feed by country rules</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="quiet-button" href="dashboard.html">← Dashboard</a>
+        <a class="quiet-button" href="https://x.com/home">Back to X</a>
+        <button id="refreshBtn" class="quiet-button" type="button">Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="backup-panel" aria-label="Backup and restore">
+      <button id="backupToggle" class="backup-toggle" type="button" aria-expanded="false" aria-controls="backupContent">
+        <span class="panel-kicker">Portable data</span>
+        <span class="backup-toggle-side">
+          <span class="backup-toggle-hint">Download, restore, or clear saved profiles</span>
+          <svg class="backup-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5"></path></svg>
+        </span>
+      </button>
+      <div id="backupContent" class="backup-content" hidden>
+        <div class="backup-content-copy">
+          <h2 id="backupTitle" class="backup-title">Backup and restore</h2>
+          <p class="backup-description">Move your profiles, country rules, settings, analytics, and lookup cache between browser installations.</p>
+        </div>
+        <div class="backup-controls">
+          <div class="backup-actions">
+            <button id="downloadBackupBtn" class="quiet-button" type="button">Download backup</button>
+            <button id="restoreBackupBtn" class="quiet-button" type="button">Restore backup</button>
+            <button id="clearFilteredBtn" class="quiet-button quiet-danger-button" type="button">Clear filtered profiles</button>
+          </div>
+          <p id="backupStatus" class="backup-status" role="status">Download one file to move or preserve your extension data.</p>
+        </div>
+      </div>
+      <input id="restoreBackupInput" type="file" accept="application/json,.json" hidden>
+    </section>
+
+    <div id="controlPanelSentinel" class="control-panel-sentinel" aria-hidden="true"></div>
+    <section id="controlPanel" class="control-panel">
+      <div class="search-row">
+        <label class="search-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.8-3.8"></path></svg>
+          <input id="profileSearch" type="search" placeholder="Search handle, country, or location" autocomplete="off">
+        </label>
+        <div class="filter-tabs" role="group" aria-label="Profile status">
+          <button class="filter-tab active" type="button" data-filter="unblocked">Unblocked</button>
+          <button class="filter-tab" type="button" data-filter="blocked">Blocked</button>
+          <button class="filter-tab" type="button" data-filter="all">All</button>
+        </div>
+      </div>
+
+      <div class="selection-row">
+        <label class="select-all-control">
+          <input id="selectAll" type="checkbox">
+          <span id="selectAllLabel">Select all</span>
+        </label>
+        <div class="selection-actions">
+          <span id="filteredSummary" class="summary">0 profiles</span>
+          <span id="bulkStatus" class="bulk-status" hidden></span>
+          <button id="stopBulkBtn" class="quiet-button" type="button" hidden>Stop</button>
+          <button id="bulkActionBtn" class="primary-button" type="button" disabled>Block selected</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="empty-state" id="emptyState" hidden>
+      <div class="empty-icon">◎</div>
+      <h2>No matching profiles</h2>
+      <p>Profiles appear after a feed post is hidden by one of your country filters.</p>
+    </section>
+
+    <section class="profile-list" id="profileList" aria-live="polite"></section>
+
+    <nav id="profilePagination" class="pagination" aria-label="Filtered profile pages">
+      <div class="page-size-control">
+        <span>Profiles per page</span>
+        <div class="page-size-options" role="group" aria-label="Profiles per page">
+          <button type="button" data-page-size="25">25</button>
+          <button class="active" type="button" data-page-size="50">50</button>
+          <button type="button" data-page-size="100">100</button>
+        </div>
+      </div>
+      <span id="pageRange" class="page-range">0 profiles</span>
+      <div class="page-actions">
+        <button id="previousPageBtn" class="quiet-button" type="button">Previous</button>
+        <span id="pageStatus" class="page-status">Page 1 of 1</span>
+        <button id="nextPageBtn" class="quiet-button" type="button">Next</button>
+      </div>
+    </nav>
+  </main>
+
+  <div id="pageToast" class="page-toast" role="status" aria-live="polite" hidden>
+    <span id="pageToastMessage"></span>
+    <button id="pageToastClose" type="button" aria-label="Dismiss notification">×</button>
+  </div>
+
+  <div id="confirmModal" class="confirm-modal" hidden aria-hidden="true">
+    <div class="confirm-backdrop" data-confirm-dismiss></div>
+    <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage confirmDetail">
+      <div class="confirm-icon" aria-hidden="true">!</div>
+      <div class="confirm-copy">
+        <span class="confirm-kicker">Confirm action</span>
+        <h2 id="confirmTitle">Are you sure?</h2>
+        <p id="confirmMessage"></p>
+        <p id="confirmDetail" class="confirm-detail" hidden></p>
+      </div>
+      <div class="confirm-actions">
+        <button id="confirmCancelBtn" class="modal-button modal-button-secondary" type="button">Cancel</button>
+        <button id="confirmAcceptBtn" class="modal-button modal-button-danger" type="button">Confirm</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="bulkProgressModal" class="bulk-progress-modal" hidden aria-hidden="true">
+    <div class="confirm-backdrop"></div>
+    <section class="bulk-progress-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkProgressTitle" aria-describedby="bulkProgressMessage bulkProgressStatus">
+      <div class="bulk-progress-icon" aria-hidden="true">↗</div>
+      <div class="confirm-copy">
+        <span id="bulkProgressKicker" class="confirm-kicker">Bulk block</span>
+        <h2 id="bulkProgressTitle">Blocking selected profiles</h2>
+        <p id="bulkProgressMessage">Please don’t close this window while requests are being processed.</p>
+      </div>
+      <div class="bulk-progress-summary">
+        <span id="bulkProgressCount">0 of 0 completed</span>
+        <span id="bulkProgressPercent">0%</span>
+      </div>
+      <div id="bulkProgressTrack" class="bulk-progress-track" role="progressbar" aria-label="Bulk block progress" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+        <span id="bulkProgressFill"></span>
+      </div>
+      <p id="bulkProgressStatus" class="bulk-progress-status" aria-live="polite">Preparing the first request…</p>
+      <div class="bulk-progress-actions">
+        <button id="bulkProgressStopBtn" class="modal-button modal-button-secondary" type="button">Stop after current request</button>
+        <button id="bulkProgressCloseBtn" class="modal-button modal-button-danger" type="button" hidden>Close</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="webext.js"></script>
+  <script src="backup.js"></script>
+  <script src="countryFlags.js"></script>
+  <script src="filtered.js"></script>
+</body>
+</html>

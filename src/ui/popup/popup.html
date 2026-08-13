@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedpecker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup-shell">
+    <header class="topbar">
+      <div class="brand-inline">
+        <img src="icons/48.png?v=5" alt="" class="brand-icon">
+        <div>
+          <div class="brand-title-row">
+            <h1>Feedpecker</h1>
+            <div id="apiStatus" class="lookup-status" role="status" aria-live="polite" title="Checking X status">
+              <span class="status-icon" aria-hidden="true"></span>
+              <span class="status-text">Checking X status</span>
+            </div>
+          </div>
+          <p>Private feed controls for X</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="openFiltered" class="icon-button" type="button" title="Filtered profiles" aria-label="Open filtered profiles">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8m13 10v-2a4 4 0 0 0-3-3.87m-2-12a4 4 0 0 1 0 7.75"/></svg>
+        </button>
+        <button id="openDashboard" class="icon-button" type="button" title="Dashboard" aria-label="Open dashboard">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5m0 14h16M8 16v-5m4 5V7m4 9v-8m4 8V4"/></svg>
+        </button>
+        <button id="toggleSwitch" class="switch power-switch" type="button" role="switch" aria-checked="true" aria-label="Enable extension"><span></span></button>
+      </div>
+    </header>
+
+    <section id="quotaMeter" class="quota-meter idle" aria-live="polite">
+      <div class="quota-row">
+        <div>
+          <span class="quota-kicker">X lookups</span>
+          <strong id="quotaMeterLabel">Ready for X lookups</strong>
+        </div>
+        <span id="quotaMeterReset" class="quota-reset">Window starts on first lookup</span>
+      </div>
+      <div class="quota-meter-track" aria-hidden="true"><div id="quotaMeterFill" class="quota-meter-fill"></div></div>
+    </section>
+
+    <section class="today-panel" aria-labelledby="todayTitle">
+      <div class="today-heading">
+        <span id="todayTitle" class="section-kicker">Today</span>
+        <span id="todayDate" class="today-date"></span>
+      </div>
+      <div class="today-stats">
+        <div><strong id="scannedTodayCount">0</strong><span>Scanned</span></div>
+        <div><strong id="hiddenTodayCount">0</strong><span>Posts hidden</span></div>
+        <div><strong id="blockedTodayCount">0</strong><span>Accounts blocked</span></div>
+      </div>
+    </section>
+
+    <button id="manageCountries" class="country-rules-card" type="button">
+      <span class="country-rules-copy">
+        <span class="section-kicker">Country rules</span>
+        <strong id="blockedRuleSummary">No hidden origins</strong>
+        <span id="blockedRulePreview">Add countries or regions in the dashboard</span>
+      </span>
+      <span class="country-rules-arrow" aria-hidden="true">→</span>
+    </button>
+
+    <details class="options-disclosure">
+      <summary>
+        <span>
+          <span class="section-kicker">Behavior</span>
+          <strong>Filter options</strong>
+        </span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="options-list">
+        <div class="setting-row">
+          <div class="setting-copy"><strong>Verified only</strong><span>Filter only verified profiles</span></div>
+          <button id="verifiedOnlyToggle" class="switch small" type="button" role="switch" aria-checked="false" aria-label="Verified only"><span></span></button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy"><strong>Auto-block</strong><span>Block profiles on X upon detection</span></div>
+          <button id="autoBlockToggle" class="switch small" type="button" role="switch" aria-checked="false" aria-label="Auto-block accounts"><span></span></button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy"><strong>Comment flags</strong><span>Check authors on individual posts</span></div>
+          <button id="alwaysLoadCommentsToggle" class="switch small" type="button" role="switch" aria-checked="false" aria-label="Load comment flags"><span></span></button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy"><strong>Feed notifications</strong><span>Show rate-limit and filter warnings</span></div>
+          <button id="toastNotificationsToggle" class="switch small" type="button" role="switch" aria-checked="true" aria-label="Show feed notifications"><span></span></button>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy"><strong>Hide animation</strong><span>Celebrate filtered posts with a subtle collapse</span></div>
+          <button id="hideAnimationToggle" class="switch small" type="button" role="switch" aria-checked="true" aria-label="Animate hidden posts"><span></span></button>
+        </div>
+      </div>
+    </details>
+
+  </main>
+
+  <script src="webext.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
