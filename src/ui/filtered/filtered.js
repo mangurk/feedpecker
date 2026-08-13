@@ -74,6 +74,31 @@ function hasExtensionRuntime() {
   return typeof chrome !== 'undefined' && Boolean(chrome.runtime?.id && chrome.storage?.local);
 }
 
+function logProfileDiagnostic(event, details) {
+  if (!hasExtensionRuntime()) return;
+  try {
+    const result = chrome.runtime.sendMessage({ type: 'debugLog', source: 'profiles', event, details });
+    result?.catch?.(() => {});
+  } catch (_) {}
+}
+
+function logDeletedProfiles(targets) {
+  const handles = targets.map(account => cleanHandle(account.screenName)).filter(Boolean);
+  if (handles.length === 1) {
+    logProfileDiagnostic(`@${handles[0]} deleted from filtered profiles`, {
+      localOnly: true,
+      remainedBlockedOnX: targets[0]?.blocked === true
+    });
+    return;
+  }
+  logProfileDiagnostic(`${handles.length} profiles deleted from filtered profiles`, {
+    localOnly: true,
+    handles: handles.slice(0, 20),
+    omitted: Math.max(0, handles.length - 20),
+    remainedBlockedOnX: targets.filter(account => account.blocked).length
+  });
+}
+
 function setBackupExpanded(expanded) {
   const isExpanded = expanded === true;
   els.backupToggle.setAttribute('aria-expanded', String(isExpanded));
@@ -706,6 +731,7 @@ async function deleteProfileRecords(targets) {
   }
 
   for (const key of keys) selected.delete(key);
+  logDeletedProfiles(targets);
 }
 
 function deletionDetail(targets) {
@@ -728,6 +754,7 @@ async function runDeleteAction(account) {
   try {
     await deleteProfileRecords([account]);
   } catch (error) {
+    logProfileDiagnostic(`@${handle} delete from filtered profiles failed`, { message: error?.message || String(error) });
     setBackupStatus(`Delete failed: ${error?.message || error}`, 'error');
   }
 }
@@ -747,6 +774,7 @@ async function runBulkDelete() {
     els.bulkStatus.hidden = false;
     els.bulkStatus.textContent = `Deleted ${targets.length} profile${targets.length === 1 ? '' : 's'}`;
   } catch (error) {
+    logProfileDiagnostic('Bulk delete from filtered profiles failed', { count: targets.length, message: error?.message || String(error) });
     els.bulkStatus.hidden = false;
     els.bulkStatus.textContent = `Delete failed: ${error?.message || error}`;
   }

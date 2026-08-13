@@ -851,6 +851,11 @@ html::-webkit-scrollbar-thumb:hover,
   padding: 0 10px !important;
   white-space: nowrap;
 }
+.logs-copy-button { display: inline-grid; width: 34px; min-width: 34px; height: 34px; min-height: 34px !important; place-items: center; padding: 0 !important; }
+.copy-icon { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+.logs-copy-button.copied { border-color: #81705c; color: #c89b52; }
+.logs-footer { justify-content: flex-end; }
+.logs-footer .btn-primary { flex: 0 0 min(220px, 100%); }
 .modal-footer .btn-secondary,
 .modal-footer .btn-primary,
 .modal-footer .btn-danger {

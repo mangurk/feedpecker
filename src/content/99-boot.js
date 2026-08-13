@@ -91,7 +91,10 @@ async function boot() {
   // 4. Keep profile-page mode current and sweep expired negative results.
   updateProfilePageMode();
   scheduleProfileControlScan(0);
-  setInterval(updateProfilePageMode, 750);
+  setInterval(() => {
+    updateProfilePageMode();
+    ensureProfilePageControl();
+  }, 750);
   setInterval(() => {
     if (document.hidden) return;
     // Sweep expired negative-cache entries and enforce cap
@@ -152,7 +155,10 @@ async function boot() {
 
         const touchesProfileControls = node.matches?.('[data-testid*="hovercard" i], [data-testid="primaryColumn"], [data-testid="UserName"], [data-testid$="-follow"], [data-testid$="-unfollow"], [role="dialog"]') ||
           node.querySelector?.('[data-testid*="hovercard" i], [data-testid="primaryColumn"], [data-testid="UserName"], [data-testid$="-follow"], [data-testid$="-unfollow"], [role="dialog"]');
-        if (touchesProfileControls) scheduleProfileControlScan();
+        if (touchesProfileControls) {
+          ensureProfilePageControl();
+          scheduleProfileControlScan();
+        }
 
         // X recycles an on-screen article by replacing its identity subtree.
         // IntersectionObserver does not fire again when the same article node

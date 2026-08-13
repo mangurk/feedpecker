@@ -262,6 +262,10 @@ test('soft dark styling stays consistent across extension surfaces', async () =>
   assert.match(dashboardStyles, /\.modal-content,[\s\S]*\.reset-confirm-detail,[\s\S]*\.modal-footer button \{ border-radius: 3px; \}/);
   assert.match(dashboardStyles, /\.modal-close::before,[\s\S]*\.modal-close::after \{[\s\S]*top: 50%;[\s\S]*left: 50%;/);
   assert.match(dashboardStyles, /translate\(-50%, -50%\) rotate\(45deg\)/);
+  assert.match(dashboard, /id="copyLogs"[^>]*aria-label="Copy logs"[^>]*title="Copy logs"[\s\S]*class="copy-icon"/);
+  assert.match(dashboardStyles, /\.copy-icon \{[\s\S]*stroke: currentColor;/);
+  assert.match(dashboardStyles, /\.logs-copy-button \{[\s\S]*width: 34px;[\s\S]*height: 34px;/);
+  assert.match(dashboardScript, /setAttribute\('aria-label', 'Logs copied'\)/);
   assert.match(dashboardStyles, /\.view-tab,[\s\S]*\.range-btn \{ border-radius: 0; \}/);
   assert.match(dashboardStyles, /\.update-status\.error \{[\s\S]*background: #14110d;[\s\S]*color: #c89b52;/);
   assert.match(dashboardStyles, /\/\* Unified soft-dark finish \*\//);
@@ -296,6 +300,11 @@ test('soft dark styling stays consistent across extension surfaces', async () =>
   assert.match(filteredStyles, /\.confirm-copy \.confirm-detail,[\s\S]*\.modal-button \{ border-radius: 3px; \}/);
   assert.match(filteredStyles, /\.filter-tab:focus, \.filter-tab:focus-visible \{ outline: 0/);
   assert.match(filteredStyles, /\.action-btn\.is-blocked,[\s\S]*\.primary-button\.is-unblock,[\s\S]*border-color: #5c0e17/s);
+  const filteredScript = await readFile(path.join(output, 'filtered.js'), 'utf8');
+  assert.match(filteredScript, /function logDeletedProfiles\(targets\)/);
+  assert.match(filteredScript, /`@\$\{handles\[0\]\} deleted from filtered profiles`/);
+  assert.match(filteredScript, /`\$\{handles\.length\} profiles deleted from filtered profiles`/);
+  assert.match(filteredScript, /logDeletedProfiles\(targets\);/);
 });
 
 test('About Account parsing tolerates X identity field migrations', async () => {
@@ -326,6 +335,11 @@ test('About Account parsing tolerates X identity field migrations', async () => 
   assert.match(content, /function appendHoverManualFilterButton\(root, handle\)/);
   assert.match(content, /appendHoverManualFilterButton\(root, handle\);[\s\S]*registerDirectLookupDemand\(handle, root\)/);
   assert.match(content, /const profile = getManualFilterProfile\(handle\);[\s\S]*createManualFilterButton\(profile, 'profile'\)/);
+  assert.match(content, /function ensureProfilePageControl\(\)/);
+  assert.match(content, /filter\(button => !button\.closest\('article\[data-testid="tweet"\], \[data-testid="UserCell"\]'\)\)/);
+  assert.match(content, /setInterval\(\(\) => \{[\s\S]*updateProfilePageMode\(\);[\s\S]*ensureProfilePageControl\(\);[\s\S]*\}, 750\);/);
+  assert.match(content, /debugLog\(`@\$\{task\.screenName\} unblocked`, undefined, 'block'\)/);
+  assert.match(content, /debugLog\(`@\$\{task\.screenName\} unblock failed`/);
   assert.match(content, /\.tf-flag-image/);
   assert.match(content, /\.tf-flag-emoji/);
   assert.match(content, /debugLog\('flag-rendered'/);

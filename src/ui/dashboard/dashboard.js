@@ -948,11 +948,18 @@ function setupLogsButton() {
   els.copyLogsBtn?.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(els.logsOutput.textContent || '');
-      els.copyLogsBtn.textContent = 'Copied';
+      els.copyLogsBtn.title = 'Copied';
+      els.copyLogsBtn.setAttribute('aria-label', 'Logs copied');
+      els.copyLogsBtn.classList.add('copied');
     } catch (_) {
-      els.copyLogsBtn.textContent = 'Copy failed';
+      els.copyLogsBtn.title = 'Copy failed';
+      els.copyLogsBtn.setAttribute('aria-label', 'Copy failed');
     }
-    setTimeout(() => { els.copyLogsBtn.textContent = 'Copy diagnostics'; }, 1200);
+    setTimeout(() => {
+      els.copyLogsBtn.title = 'Copy logs';
+      els.copyLogsBtn.setAttribute('aria-label', 'Copy logs');
+      els.copyLogsBtn.classList.remove('copied');
+    }, 1200);
   });
 }
 

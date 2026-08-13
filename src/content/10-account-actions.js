@@ -167,6 +167,16 @@ function finishAccountAction(data) {
       }, 'block');
     }
   }
+  if (task.action === 'unblock') {
+    if (data.ok === true) {
+      debugLog(`@${task.screenName} unblocked`, undefined, 'block');
+    } else {
+      debugLog(`@${task.screenName} unblock failed`, {
+        status: Number.isFinite(data.status) ? data.status : 0,
+        remaining: Number.isFinite(data.rateLimitRemaining) ? data.rateLimitRemaining : undefined
+      }, 'block');
+    }
+  }
   scheduleAccountActionPump();
 }
 

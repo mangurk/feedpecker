@@ -349,6 +349,16 @@ function finishAccountAction(data) {
       }, 'block');
     }
   }
+  if (task.action === 'unblock') {
+    if (data.ok === true) {
+      debugLog(`@${task.screenName} unblocked`, undefined, 'block');
+    } else {
+      debugLog(`@${task.screenName} unblock failed`, {
+        status: Number.isFinite(data.status) ? data.status : 0,
+        remaining: Number.isFinite(data.rateLimitRemaining) ? data.rateLimitRemaining : undefined
+      }, 'block');
+    }
+  }
   scheduleAccountActionPump();
 }
 
@@ -2022,7 +2032,7 @@ function createManualFilterButton(profile, context) {
   return button;
 }
 
-async function ensureProfilePageControl() {
+function ensureProfilePageControl() {
   const handle = getProfilePageHandle();
   if (!handle) return;
   const primary = document.querySelector('[data-testid="primaryColumn"]');
@@ -2033,16 +2043,14 @@ async function ensureProfilePageControl() {
     else existing.remove();
     if (existing.dataset.tfHandle === handle.toLowerCase()) return;
   }
-  const identity = primary.querySelector('[data-testid="UserName"]');
-  if (!identity) return;
-  const identityTop = identity.getBoundingClientRect().top;
   const followButton = Array.from(primary.querySelectorAll('button, [role="button"]'))
     .filter(isFollowButton)
-    .find(button => {
-      if (!Number.isFinite(identityTop) || identityTop <= 0) return false;
+    .filter(button => !button.closest('article[data-testid="tweet"], [data-testid="UserCell"]'))
+    .filter(button => {
       const rect = button.getBoundingClientRect();
-      return rect.bottom <= identityTop + 24 && rect.top >= identityTop - 260;
-    }) || null;
+      return rect.width > 0 && rect.height > 0 && rect.bottom > 0;
+    })
+    .sort((left, right) => left.getBoundingClientRect().top - right.getBoundingClientRect().top)[0] || null;
   if (!followButton) return;
   // This is a local handle override. It must not depend on location lookup
   // availability or pacing state.
@@ -2651,7 +2659,10 @@ async function boot() {
   // 4. Keep profile-page mode current and sweep expired negative results.
   updateProfilePageMode();
   scheduleProfileControlScan(0);
-  setInterval(updateProfilePageMode, 750);
+  setInterval(() => {
+    updateProfilePageMode();
+    ensureProfilePageControl();
+  }, 750);
   setInterval(() => {
     if (document.hidden) return;
     // Sweep expired negative-cache entries and enforce cap
@@ -2712,7 +2723,10 @@ async function boot() {
 
         const touchesProfileControls = node.matches?.('[data-testid*="hovercard" i], [data-testid="primaryColumn"], [data-testid="UserName"], [data-testid$="-follow"], [data-testid$="-unfollow"], [role="dialog"]') ||
           node.querySelector?.('[data-testid*="hovercard" i], [data-testid="primaryColumn"], [data-testid="UserName"], [data-testid$="-follow"], [data-testid$="-unfollow"], [role="dialog"]');
-        if (touchesProfileControls) scheduleProfileControlScan();
+        if (touchesProfileControls) {
+          ensureProfilePageControl();
+          scheduleProfileControlScan();
+        }
 
         // X recycles an on-screen article by replacing its identity subtree.
         // IntersectionObserver does not fire again when the same article node

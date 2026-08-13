@@ -258,7 +258,7 @@ function createManualFilterButton(profile, context) {
   return button;
 }
 
-async function ensureProfilePageControl() {
+function ensureProfilePageControl() {
   const handle = getProfilePageHandle();
   if (!handle) return;
   const primary = document.querySelector('[data-testid="primaryColumn"]');
@@ -269,16 +269,14 @@ async function ensureProfilePageControl() {
     else existing.remove();
     if (existing.dataset.tfHandle === handle.toLowerCase()) return;
   }
-  const identity = primary.querySelector('[data-testid="UserName"]');
-  if (!identity) return;
-  const identityTop = identity.getBoundingClientRect().top;
   const followButton = Array.from(primary.querySelectorAll('button, [role="button"]'))
     .filter(isFollowButton)
-    .find(button => {
-      if (!Number.isFinite(identityTop) || identityTop <= 0) return false;
+    .filter(button => !button.closest('article[data-testid="tweet"], [data-testid="UserCell"]'))
+    .filter(button => {
       const rect = button.getBoundingClientRect();
-      return rect.bottom <= identityTop + 24 && rect.top >= identityTop - 260;
-    }) || null;
+      return rect.width > 0 && rect.height > 0 && rect.bottom > 0;
+    })
+    .sort((left, right) => left.getBoundingClientRect().top - right.getBoundingClientRect().top)[0] || null;
   if (!followButton) return;
   // This is a local handle override. It must not depend on location lookup
   // availability or pacing state.
